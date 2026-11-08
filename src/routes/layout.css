@@ -1,0 +1,71 @@
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/dm-sans';
+@import 'tailwindcss';
+
+/*
+ * FitBalance design tokens — taken from the Figma Make prototype
+ * ("FitBalance Fitness Tracker", Version 3). See FitBalance-MVP-Docs/FRONTEND.md.
+ */
+@theme {
+	--color-green: #147a57;
+	--color-green-dark: #0b5e43;
+	--color-ink: #17241f;
+	--color-muted: #748079;
+	--color-line: #e4e9e5;
+	--color-paper: #f5f7f4;
+	--color-mint: #e8f4ee;
+	--color-mint-strong: #d1f4e4;
+	--color-orange: #e69235;
+	--color-orange-bg: #fff0dd;
+	--color-amber-text: #c8781f;
+	--color-fat: #7587c9;
+	--color-blue: #6079b8;
+	--color-blue-bg: #e9eef9;
+
+	/* DM Sans has no Cyrillic glyphs; Manrope (which has them) fills in for Russian text. */
+	--font-sans: 'DM Sans Variable', 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+
+	--radius-card: 20px;
+	--radius-tile: 16px;
+	--radius-field: 12px;
+
+	--shadow-card: 0 1px 2px rgb(23 36 31 / 0.04), 0 4px 16px rgb(23 36 31 / 0.04);
+}
+
+/* Small uppercase label above section titles ("TODAY'S TARGETS"). */
+@utility eyebrow {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 1.3px;
+	text-transform: uppercase;
+	color: var(--color-muted);
+}
+
+/* Manrope headings with the prototype's tight tracking. */
+@utility heading {
+	font-family: var(--font-display);
+	letter-spacing: -0.035em;
+	color: var(--color-ink);
+}
+
+@layer base {
+	html {
+		background: var(--color-paper);
+		color: var(--color-ink);
+		-webkit-tap-highlight-color: transparent;
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		font-family: var(--font-sans);
+		min-height: 100dvh;
+	}
+
+	/* Prevents iOS Safari from zooming into focused fields. */
+	input,
+	select,
+	textarea {
+		font-size: max(16px, 1em);
+	}
+}

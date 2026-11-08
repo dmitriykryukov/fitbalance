@@ -290,11 +290,16 @@ static/            manifest.webmanifest, icons, apple-touch-icon.png
 ## Auth handling
 
 -   `hooks.server.ts` creates a Supabase server client per request and
-    exposes `locals.supabase` and `locals.safeGetSession()` (validates
-    the JWT with `auth.getUser()`).
--   `/app/**` and `/onboarding` layouts redirect to `/login` when there
-    is no session; `/app/**` redirects to `/onboarding` while
-    `profiles.onboarded_at` is null.
+    exposes `locals.supabase` and `locals.getUser()` (verifies the access
+    token with `auth.getClaims()`; never trusts `getSession()`).
+-   `hooks.server.ts` redirects signed-out requests for `/app/**` and
+    `/onboarding` to `/login?next=…` (this also covers form actions,
+    which layouts do not guard); the `/app` layout redirects to
+    `/onboarding` while `profiles.onboarded_at` is null. `next` only
+    accepts same-site `/app` and `/onboarding` paths.
+-   After sign-in (password, magic link or email confirmation) the
+    profile `locale` is written to the language cookie, so the app opens
+    in the user's language on a new device.
 -   Magic link and email confirmation return to `/auth/callback`, which
     exchanges the code for a session. On iOS the link may open in Safari
     rather than the installed PWA; password sign-in is the recommended

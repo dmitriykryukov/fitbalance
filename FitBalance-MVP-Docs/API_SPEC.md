@@ -72,7 +72,7 @@ Messages are short, safe and localised; no stack traces or SQL errors.
   PATCH    `/api/profile`              update `display_name`, `date_of_birth`, `sex`, `height_cm`, `timezone`, `locale`, `activity_preferences`, `onboarded` (true sets `onboarded_at`)
   GET      `/api/goals?date=`          goal active on `date` (default today)
   PUT      `/api/goals`                save goals; creates/updates the version effective from the user's today
-  GET      `/api/goals/suggestion`     suggested calories/macros from profile, latest weight and fitness goal (Mifflin--St Jeor); marked as estimate
+  GET      `/api/goals/suggestion`     `?fitness_goal=&weekly_activity_minutes=` (optional); suggested calories/macros from profile, latest weight and goal (Mifflin--St Jeor); marked as estimate; `missing` lists profile fields needed when no suggestion is possible
   DELETE   `/api/account`              body `{ "confirm": "DELETE" }`; deletes the auth user → all data cascades; signs out
 
 ### Dashboard and statistics

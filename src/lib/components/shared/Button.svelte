@@ -24,6 +24,8 @@
 		loading = false,
 		full = false,
 		disabled,
+		type = 'button',
+		'aria-label': ariaLabel,
 		class: className = '',
 		...rest
 	}: Props = $props();
@@ -54,9 +56,16 @@
 
 {#if href}
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- typed as ResolvedPathname -->
-	<a {href} class={classes}>{@render children()}</a>
+	<a {href} class={classes} aria-label={ariaLabel}>{@render children()}</a>
 {:else}
-	<button class={classes} disabled={disabled || loading} aria-busy={loading} {...rest}>
+	<button
+		{type}
+		class={classes}
+		aria-label={ariaLabel}
+		disabled={disabled || loading}
+		aria-busy={loading}
+		{...rest}
+	>
 		{#if loading}
 			<span
 				class="size-4 animate-spin rounded-full border-2 border-current border-r-transparent"

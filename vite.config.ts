@@ -39,6 +39,18 @@ export default defineConfig({
 					include: ['src/**/*.{test,spec}.{js,ts}'],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
 				}
+			},
+			{
+				// Talks to the real Supabase project from `.env` (run with --mode integration).
+				extends: './vite.config.ts',
+				test: {
+					name: 'integration',
+					environment: 'node',
+					include: ['tests/integration/**/*.test.ts'],
+					fileParallelism: false,
+					testTimeout: 30_000,
+					hookTimeout: 60_000
+				}
 			}
 		]
 	}

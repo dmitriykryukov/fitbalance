@@ -1,4 +1,6 @@
+import { redirect } from '@sveltejs/kit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
+import { isProtectedPath } from '#lib/server/auth.js';
 import { getTextDirection } from '#lib/paraglide/runtime.js';
 import { paraglideMiddleware } from '#lib/paraglide/server.js';
 import { createSupabaseServerClient, type AuthUser } from '#lib/server/supabase.js';
@@ -20,6 +22,13 @@ const handleSupabase: Handle = async ({ event, resolve }) => {
 		});
 		return cached;
 	};
+
+	// Guard pages (and their form actions) here rather than in layouts, which
+	// do not run for actions. /api routes answer 401 themselves via `authed()`.
+	if (isProtectedPath(event.url.pathname) && !(await event.locals.getUser())) {
+		const next = event.url.pathname + event.url.search;
+		redirect(303, `/login?next=${encodeURIComponent(next)}`);
+	}
 
 	return resolve(event, {
 		filterSerializedResponseHeaders: (name) =>

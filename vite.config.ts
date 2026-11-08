@@ -25,6 +25,9 @@ export default defineConfig({
 			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
 		})
 	],
+	// Matches the Site URL / redirect URLs configured in Supabase Auth.
+	server: { port: 5174, strictPort: true },
+	preview: { port: 5174, strictPort: true },
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

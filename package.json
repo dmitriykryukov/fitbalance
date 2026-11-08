@@ -19,7 +19,10 @@
 		"test:unit": "npm run i18n && vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright install && playwright test",
-		"i18n": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --strategy cookie preferredLanguage baseLocale --emit-ts-declarations --silent"
+		"i18n": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --strategy cookie preferredLanguage baseLocale --emit-ts-declarations --silent",
+		"db:push": "npx supabase db push --remote",
+		"db:types": "npx supabase gen types typescript --remote --schema public > src/lib/types/database.ts",
+		"db:test-rls": "npx supabase db query --remote -f supabase/scripts/rls_isolation_test.sql"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

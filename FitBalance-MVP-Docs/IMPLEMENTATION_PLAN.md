@@ -18,7 +18,7 @@ AI_SPEC, FRONTEND, API_SPEC (all v1).
 
   Needed before   Item
   --------------- ------------------------------------------------------------------------------------------------
-  Phase 0         Supabase dev project; Project URL, publishable/anon key and secret/service-role key in `.env`; project ref + DB password for `npx supabase link`; Site URL `http://localhost:5173` and redirect `http://localhost:5173/**`
+  Phase 0         Supabase dev project; Project URL, publishable/anon key and secret/service-role key in `.env`; project ref + DB password for `npx supabase link`; Site URL `http://localhost:5174` and redirect `http://localhost:5174/**`
   Phase 3         `ANTHROPIC_API_KEY` in `.env`; approval to spend about \$0.05 on the AI evaluation run
   Phase 7         Vercel account; production URL added to Supabase redirect URLs; email provider (e.g. Resend) for Supabase SMTP
 

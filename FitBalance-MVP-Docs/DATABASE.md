@@ -202,6 +202,12 @@ the Today Dashboard and Statistics. No cached daily totals are stored.
 -   `ai_usage`: select and insert own rows; `UPDATE`/`DELETE` privileges
     revoked.
 -   The `anon` role has no privileges on any app table or view.
+-   Table privileges are granted explicitly in migrations (newer Supabase
+    projects do not grant them to API roles by default):
+    `authenticated` gets select/insert/update/delete on user-owned tables,
+    select/update on `profiles`, select/insert on `ai_usage`, select on
+    `daily_nutrition`; no API role gets `TRUNCATE`, `TRIGGER` or
+    `REFERENCES`. Every new table or view needs its own grants.
 -   The service-role key is used only server-side, for account deletion.
     It is never sent to the browser.
 

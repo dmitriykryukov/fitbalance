@@ -293,6 +293,26 @@ begin
 end;
 $$;
 
+-- TRUNCATE skips RLS, so no API role may hold it (or other non-DML privileges).
+do $$
+declare
+  r record;
+begin
+  for r in
+    select grantee, table_name, privilege_type
+    from information_schema.role_table_grants
+    where table_schema = 'public'
+      and grantee in ('anon', 'authenticated', 'service_role')
+      and privilege_type in ('TRUNCATE', 'TRIGGER', 'REFERENCES')
+  loop
+    raise exception 'FAIL: % has % on %', r.grantee, r.privilege_type, r.table_name;
+  end loop;
+  if has_table_privilege('anon', 'public.meals', 'SELECT') then
+    raise exception 'FAIL: anon can select meals';
+  end if;
+end;
+$$;
+
 rollback;
 
 select 'ALL RLS TESTS PASSED' as result;

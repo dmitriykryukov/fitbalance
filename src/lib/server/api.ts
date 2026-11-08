@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { ERROR_STATUS, type ApiErrorBody, type ErrorCode } from '#lib/api/errors.js';
 import { m } from '#lib/paraglide/messages.js';
 import type { AuthUser } from './supabase.js';
@@ -100,4 +100,11 @@ export function authed<E extends RequestEvent>(
 			return errorResponse(new ApiError('INTERNAL_ERROR', m.error_generic()));
 		}
 	};
+}
+
+/** A route `[id]` that is not a UUID can never match a row, so it is reported as NOT_FOUND. */
+export function routeId(value: string | undefined): string {
+	const result = z.uuid().safeParse(value);
+	if (!result.success) throw new ApiError('NOT_FOUND', m.error_not_found());
+	return result.data;
 }

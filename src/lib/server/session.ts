@@ -1,4 +1,5 @@
-import { redirect, type RequestEvent } from '@sveltejs/kit';
+import { error, redirect, type RequestEvent } from '@sveltejs/kit';
+import { m } from '#lib/paraglide/messages.js';
 import { getProfile, type Profile } from './services/profile.js';
 import { ApiError } from './api.js';
 
@@ -18,5 +19,15 @@ export async function requireProfile(event: Pick<RequestEvent, 'locals'>): Promi
 			redirect(303, '/login');
 		}
 		throw error;
+	}
+}
+
+/** Runs a service call in a page load; a NOT_FOUND ApiError becomes SvelteKit's 404 page. */
+export async function orNotFound<T>(run: () => Promise<T>): Promise<T> {
+	try {
+		return await run();
+	} catch (err) {
+		if (err instanceof ApiError && err.code === 'NOT_FOUND') error(404, m.error_not_found());
+		throw err;
 	}
 }

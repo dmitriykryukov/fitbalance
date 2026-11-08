@@ -683,7 +683,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      save_meal: { Args: { payload: Json }; Returns: string }
     }
     Enums: {
       [_ in never]: never

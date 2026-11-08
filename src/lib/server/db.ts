@@ -6,6 +6,7 @@ type DbError = { code?: string; message: string; details?: string | null };
 /** Postgres/PostgREST codes that mean "the input was not acceptable". */
 const VALIDATION_CODES = new Set([
 	'23502', // not_null_violation
+	'23503', // foreign_key_violation (e.g. another user's food_item_id)
 	'23505', // unique_violation
 	'23514', // check_violation
 	'22003', // numeric_value_out_of_range
@@ -35,8 +36,8 @@ export function unwrap<T>(result: { data: T; error: DbError | null }): T {
 }
 
 /** Like `unwrap`, but a missing row becomes NOT_FOUND (RLS hides other users' rows). */
-export function unwrapFound<T>(result: { data: T | null; error: DbError | null }): T {
+export function unwrapFound<T>(result: { data: T | null; error: DbError | null }): NonNullable<T> {
 	const data = unwrap(result);
-	if (data === null) throw new ApiError('NOT_FOUND', m.error_not_found());
+	if (data == null) throw new ApiError('NOT_FOUND', m.error_not_found());
 	return data;
 }

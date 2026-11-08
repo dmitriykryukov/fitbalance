@@ -1,6 +1,5 @@
-import { m } from '#lib/paraglide/messages.js';
-import { ApiError, authed, noContent, ok, parseBody } from '#lib/server/api.js';
-import { IdParam, MeasurementPatch } from '#lib/schemas/profile.js';
+import { authed, noContent, ok, parseBody, routeId } from '#lib/server/api.js';
+import { MeasurementPatch } from '#lib/schemas/profile.js';
 import {
 	assertNotFuture,
 	deleteMeasurement,
@@ -11,15 +10,8 @@ import type { RequestHandler } from './$types';
 
 type Event = Parameters<RequestHandler>[0];
 
-/** A malformed ID can never match a row, so it is reported like a missing one. */
-function measurementId(params: Event['params']): string {
-	const result = IdParam.safeParse(params.id);
-	if (!result.success) throw new ApiError('NOT_FOUND', m.error_not_found());
-	return result.data;
-}
-
 export const PATCH: RequestHandler = authed<Event>(async ({ locals, user, request, params }) => {
-	const id = measurementId(params);
+	const id = routeId(params.id);
 	const patch = await parseBody(request, MeasurementPatch);
 	if (patch.local_date) {
 		assertNotFuture(patch.local_date, profileToday(await getProfile(locals.supabase, user.id)));
@@ -28,6 +20,6 @@ export const PATCH: RequestHandler = authed<Event>(async ({ locals, user, reques
 });
 
 export const DELETE: RequestHandler = authed<Event>(async ({ locals, user, params }) => {
-	await deleteMeasurement(locals.supabase, user.id, measurementId(params));
+	await deleteMeasurement(locals.supabase, user.id, routeId(params.id));
 	return noContent();
 });

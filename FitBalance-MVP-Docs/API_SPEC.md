@@ -100,8 +100,14 @@ Dashboard response (abbreviated):
 }
 ```
 
-`kcal_left` = goal − food kcal (never adjusted for active kcal); `null`
-when no calorie goal is set. Statistics returns one entry per day with
+`kcal_left` = goal − rounded food kcal (never adjusted for active
+kcal), so it always adds up with the consumed number shown; `null` when
+no calorie goal is set. `nutrition.logged` is false when the day has no
+meals (totals are then 0 but must be shown as "not logged", not as
+data). Unlogged meal types are `{ "meal_type": "dinner", "logged": false }`.
+Activity values (`gym_minutes`, `steps`, `active_kcal`) are `null` when
+nothing of that kind is logged that day; `latest` is the most recent
+workout or activity on or before the date. Statistics returns one entry per day with
 `null` for days without logs (never 0), plus averages over logged days
 and `days_logged`.
 
@@ -150,7 +156,12 @@ Create meal request:
 -   `food_item_id`, if given, must be one of the user's foods (enforced
     by a composite foreign key).
 -   `save_to_my_foods` (default true for AI items) upserts the food by
-    name + brand and bumps `use_count`.
+    name + brand and bumps `use_count`; values the user typed are never
+    overwritten by AI estimates (see DATABASE.md, `save_meal`).
+-   Meal responses include `items` (with database-calculated totals),
+    `totals` and `has_ai_estimates`.
+-   `POST /api/foods` and `PATCH /api/foods/:id` reject a second food
+    with the same name + brand (`VALIDATION_ERROR`, `fields.name`).
 -   Implemented with the `save_meal(payload jsonb)` database function
     (security invoker), so the meal, items and My foods update succeed
     or fail together.

@@ -110,13 +110,19 @@ Screens marked "no" are built from the same components and tokens.
 
 ### Nutrition (`/app/nutrition`)
 
--   Date chip ("Today ›") opens a date picker; `?date=YYYY-MM-DD`.
--   Energy + macros summary card (same component as Today).
--   "Log with FitBalance AI" card → `/app/nutrition/ai`.
+-   Date chip ("Today" / "Yesterday" / short date) opens the native
+    date picker; `?date=YYYY-MM-DD`. Future, invalid or pre-2000 dates
+    fall back to today.
+-   Energy + macros summary card (same bars as Today). A day without
+    meals shows "—", never 0.
+-   "Log with FitBalance AI" card → `/app/nutrition/ai` (added in
+    Phase 3).
 -   Meals grouped by type, each with time, kcal, item names and
     "P · C · F" grams; edit icon → meal editor. "Estimated" marker on
     meals that contain AI-estimated items.
--   "+ Add food" → choose meal type, then AI or search.
+-   "+ Add food" → `/app/nutrition/search?type=&date=` (type defaults
+    to the time of day); meal types not logged yet are offered as
+    "+ Lunch" shortcuts. AI is offered here from Phase 3.
 
 ### Log with AI → Review meal (`/app/nutrition/ai`)
 
@@ -147,9 +153,15 @@ One route with two steps (state kept in the page, not the URL):
 
 ### Search My foods + manual entry (`/app/nutrition/search`)
 
-Search box (recent/frequent foods shown before typing), select → grams
-(or servings) → preview → add to meal. "Create food" form: name, brand,
-kcal and macros per 100 g, optional serving. Uses `inputmode="decimal"`.
+Builds a new meal: meal type, date and time, the foods added so far
+(grams editable, live totals) and a sticky "Save meal" bar. Search box
+(recent/frequent foods shown before typing), select → grams (serving or
+100 g shortcuts) → preview → add to meal. "Create food" form: name,
+brand, kcal and macros per 100 g, optional serving; macros over 100 g
+are rejected and energy that does not match the macros asks for a
+second confirmation. Uses `inputmode="decimal"` and accepts "3,6".
+The meal editor (`/app/nutrition/meals/[id]`) is the same screen with
+the saved meal loaded, plus "Delete meal".
 
 ### Activity (`/app/activity`)
 

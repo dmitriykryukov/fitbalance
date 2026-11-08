@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronRight, Languages, Plus, SquarePen, Target } from '@lucide/svelte';
+	import { Apple, ChevronRight, Languages, Plus, SquarePen, Target } from '@lucide/svelte';
 	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
@@ -121,6 +121,14 @@
 	</Card>
 
 	<Card padding="none">
+		<a
+			href={resolve('/app/profile/foods')}
+			class="flex min-h-14 items-center gap-3 border-b border-line px-5 text-[15px] font-semibold"
+		>
+			<Apple class="size-5 text-green" aria-hidden="true" />
+			<span class="flex-1">{m.my_foods_title()}</span>
+			<ChevronRight class="size-5 text-muted" aria-hidden="true" />
+		</a>
 		<a
 			href={resolve('/app/profile/account')}
 			class="flex min-h-14 items-center gap-3 px-5 text-[15px] font-semibold"

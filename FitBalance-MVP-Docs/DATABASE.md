@@ -39,9 +39,9 @@ and `security_invoker` views).
     `exercises` are user-owned.
 4.  **Missing days are not zero.** The `daily_nutrition` view only
     returns days that have at least one meal.
-5.  **Atomic multi-row saves use Postgres functions** (planned, see
-    below) so a meal and its items, or a workout and its sets, are
-    saved in one transaction.
+5.  **Atomic multi-row saves use Postgres functions** (see below) so a
+    meal and its items, or a workout and its sets, are saved in one
+    transaction.
 
 ## Tables
 
@@ -222,14 +222,32 @@ user_id)`, `workout_sets(workout_id, user_id)`,
 created_at desc)`, plus unique name indexes on `food_items` and
 `exercises` and partial indexes on nullable foreign keys.
 
-## Planned migrations (added with their features)
+## Database functions
 
-  Phase   Function                    Purpose
-  ------- --------------------------- --------------------------------------------------------
-  2       `save_meal(payload jsonb)`  Create/replace a meal and its items in one transaction; upsert My foods and bump `use_count`
-  4       `save_workout(payload jsonb)` Create/replace a workout and its sets; upsert exercises
+  Phase   Function                      Status
+  ------- ----------------------------- ---------------------------------------------------------------
+  2       `save_meal(payload jsonb)`    done --- `20261107150000_save_meal.sql`
+  4       `save_workout(payload jsonb)` planned --- create/replace a workout and its sets; upsert exercises
 
-Both run as `security invoker`, so RLS still applies.
+Both run as `security invoker`, so RLS and the composite foreign keys
+still apply; `execute` is granted to `authenticated` only (not `anon`).
+
+**`save_meal`** creates the meal (`id` null) or replaces it (`id` given:
+updates the meal row, deletes and re-inserts its items), then for each
+item:
+
+-   `save_to_my_foods = true` upserts the food on the unique name + brand
+    index, links the item to it, adds 1 to `use_count` and sets
+    `last_used_at`. Values the user typed (`source = 'user'`) are never
+    overwritten by AI estimates; AI-sourced foods take the newest
+    confirmed values.
+-   otherwise a given `food_item_id` only has its use count bumped.
+
+Errors: `22023` for fewer than 1 or more than 30 items, `P0002` when the
+meal to replace does not exist or belongs to someone else, plus any
+constraint violation (e.g. `23503` for another user's `food_item_id`).
+Any error rolls back the meal, its items and the My foods changes.
+Tested through the API in `tests/integration/nutrition.test.ts`.
 
 ## Testing
 

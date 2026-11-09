@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	energyMismatch,
 	itemTotals,
 	macroStatus,
 	mealTypeForHour,
@@ -109,5 +110,19 @@ describe('macroStatus', () => {
 		).toBe('on_track');
 		expect(macroStatus([{ value: 60, target: 150 }])).toBe('under');
 		expect(macroStatus([{ value: 60, target: null }])).toBeNull();
+	});
+});
+
+describe('energyMismatch', () => {
+	it('accepts kcal within ±25 % or ±20 kcal of 4·P + 4·C + 9·F', () => {
+		// Fried eggs: 13.6·4 + 0.8·4 + 15.3·9 = 195.3
+		expect(energyMismatch({ kcal: 196, protein_g: 13.6, carbs_g: 0.8, fat_g: 15.3 })).toBe(false);
+		// Small values: 15 kcal off is within ±20 kcal.
+		expect(energyMismatch({ kcal: 30, protein_g: 1, carbs_g: 2, fat_g: 0 })).toBe(false);
+	});
+
+	it('flags values that do not add up', () => {
+		expect(energyMismatch({ kcal: 400, protein_g: 10, carbs_g: 10, fat_g: 10 })).toBe(true);
+		expect(energyMismatch({ kcal: 50, protein_g: 10, carbs_g: 10, fat_g: 10 })).toBe(true);
 	});
 });

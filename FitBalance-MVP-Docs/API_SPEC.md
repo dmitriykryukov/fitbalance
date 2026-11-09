@@ -178,7 +178,10 @@ Create meal request:
   GET      `/api/ai/daily-insight?date=`     today's insight; generated on first request of the day, then cached
 
 Food parse request: `{ "description": "…", "meal_type": "breakfast" }`
-(description 1--1000 chars). Response:
+(description 1--1000 chars; `meal_type` optional). Optional
+`"clarifications": [{ "question": "…", "answer": "…" }]` (up to 3, each
+≤ 300 chars) re-analyzes with answers to the previous questions. Unknown
+fields are rejected. Response:
 
 ``` json
 {
@@ -203,6 +206,14 @@ Food parse request: `{ "description": "…", "meal_type": "breakfast" }`
   "error": null
 }
 ```
+
+Per item, `warnings` lists codes (`energy_mismatch`: kcal is more than
+±25 % and ±20 kcal away from 4·P + 4·C + 9·F); `my_food_match` is null
+or `{ "id", "name", "brand", "nutrition_per_100g" }`; `preview` is null
+when `grams` is null, and such items are left out of `preview_total`.
+Errors: `RATE_LIMITED` (daily limit or provider 429, with
+`retry_after_seconds`), `AI_REFUSED`, `AI_PROVIDER_ERROR`,
+`AI_INVALID_RESPONSE`; a missing API key is `INTERNAL_ERROR`.
 
 Coach request: `{ "conversation_id": null, "message": "…" }` (1--2000
 chars). Response: `{ "conversation_id": "…", "message": { "id": "…",

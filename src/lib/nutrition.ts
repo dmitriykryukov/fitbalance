@@ -94,6 +94,19 @@ export function kcalFromMacros(protein_g: number, carbs_g: number, fat_g: number
 	return protein_g * 4 + carbs_g * 4 + fat_g * 9;
 }
 
+/**
+ * True when energy from macros (4·P + 4·C + 9·F) is more than ±25 % — and
+ * more than ±20 kcal — away from the stated kcal. Shown as a warning only;
+ * values are never corrected silently (alcohol, for example, has energy
+ * that is not in the macros).
+ */
+export function energyMismatch(per100: Pick<Per100g, 'kcal' | 'protein_g' | 'carbs_g' | 'fat_g'>) {
+	const diff = Math.abs(
+		kcalFromMacros(per100.protein_g, per100.carbs_g, per100.fat_g) - per100.kcal
+	);
+	return diff > Math.max(20, per100.kcal * 0.25);
+}
+
 /** A sensible default meal type for the local hour (0–23). */
 export function mealTypeForHour(hour: number): MealType {
 	if (hour >= 4 && hour < 11) return 'breakfast';

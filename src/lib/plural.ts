@@ -19,6 +19,14 @@ export const countItems = (n: number) =>
 		other: m.count_items_other
 	});
 
+export const countFoodsIdentified = (n: number) =>
+	plural(n, {
+		one: m.count_foods_one,
+		few: m.count_foods_few,
+		many: m.count_foods_many,
+		other: m.count_foods_other
+	});
+
 export const countExercises = (n: number) =>
 	plural(n, {
 		one: m.count_exercises_one,

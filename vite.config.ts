@@ -51,6 +51,16 @@ export default defineConfig({
 					testTimeout: 30_000,
 					hookTimeout: 60_000
 				}
+			},
+			{
+				// Live Claude API calls that cost money: `npm run ai:eval` only (sets RUN_AI_EVAL=1).
+				extends: './vite.config.ts',
+				test: {
+					name: 'eval',
+					environment: 'node',
+					include: ['tests/eval/**/*.eval.ts'],
+					testTimeout: 600_000
+				}
 			}
 		]
 	}

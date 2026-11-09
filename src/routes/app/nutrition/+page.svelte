@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, UtensilsCrossed } from '@lucide/svelte';
+	import { ChevronRight, Plus, Sparkles, UtensilsCrossed } from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 	import type { ResolvedPathname } from '$app/types';
 	import PageHeader from '#lib/components/layout/PageHeader.svelte';
@@ -29,6 +29,9 @@
 	const defaultType = $derived(
 		data.date === data.today ? mealTypeForHour(localHour(data.profile.timezone)) : 'lunch'
 	);
+	const aiHref = $derived(
+		`${resolve('/app/nutrition/ai')}?type=${defaultType}${data.date === data.today ? '' : `&date=${data.date}`}` as ResolvedPathname
+	);
 	const unlogged = $derived(
 		MEAL_TYPES.filter((type) => !data.meals.some((meal) => meal.meal_type === type))
 	);
@@ -44,6 +47,21 @@
 
 <div class="space-y-6 px-4">
 	<DayEnergyCard nutrition={data.nutrition} goal={data.goal} />
+
+	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- built from resolve() -->
+	<a
+		href={aiHref}
+		class="flex items-center gap-4 rounded-card border border-green/15 bg-mint p-4 shadow-card transition-colors hover:border-green/40"
+	>
+		<span class="grid size-12 shrink-0 place-items-center rounded-tile bg-green text-white">
+			<Sparkles class="size-6" aria-hidden="true" />
+		</span>
+		<span class="min-w-0 flex-1">
+			<span class="block heading text-base font-bold text-ink">{m.ai_log_card_title()}</span>
+			<span class="mt-0.5 block text-sm text-muted">{m.ai_log_card_body()}</span>
+		</span>
+		<ChevronRight class="size-5 shrink-0 text-green" aria-hidden="true" />
+	</a>
 
 	<section>
 		<div class="mb-3 flex items-end justify-between gap-3 px-1">

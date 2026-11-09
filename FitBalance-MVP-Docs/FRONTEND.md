@@ -128,10 +128,13 @@ Screens marked "no" are built from the same components and tokens.
 
 One route with two steps (state kept in the page, not the URL):
 
-1.  **Describe:** meal type in the subtitle, large textarea, "Analyze
-    meal" button, "Try saying" example, "Search My foods instead" link.
-    Loading state on the button; on error the text stays and an error
-    banner offers "Try again" / "Enter manually".
+1.  **Describe:** meal type and day in the subtitle, a meal-type
+    selector (defaults to `?type=` or the time of day), large textarea,
+    "Analyze meal" button, "Try saying" example, "Search My foods
+    instead" link and a one-line note that the text is sent to Claude
+    (Anthropic) and nothing is saved until confirmed. Loading state on
+    the button; on error the text stays and an error banner offers "Try
+    again" / "Enter manually". `?date=` works as on the add-food page.
 2.  **Review:** summary chip "N foods identified --- Nothing is saved
     yet", then one card per item:
     -   name, "Estimated" badge, preparation line;
@@ -148,6 +151,12 @@ One route with two steps (state kept in the page, not the URL):
     -   clarifying questions shown above the cards with an "Answer and
         re-analyze" field.
     -   "Add ingredient" (search My foods or describe it).
+    -   Card totals sit on their own line under the amount controls.
+        Saving with missing grams scrolls to and focuses the first
+        highlighted field. The Russian save button reads "Сохранить" so
+        the "N продуктов → завтрак" line fits on a phone.
+    -   Entry points: "Log with FitBalance AI" card on the Nutrition
+        diary, and "Describe it to AI instead" on the add-food page.
     -   Sticky footer: meal total and **Confirm & Save** ("Saves N items
         to breakfast").
 

@@ -20,6 +20,7 @@
 		"test:integration": "npm run i18n && vitest --run --project integration --mode integration",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright install && playwright test",
+		"ai:eval": "npm run i18n && RUN_AI_EVAL=1 vitest --run --project eval --mode integration",
 		"i18n": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --strategy cookie preferredLanguage baseLocale --emit-ts-declarations --silent",
 		"db:push": "npx supabase db push --remote",
 		"db:types": "npx supabase gen types typescript --remote --schema public > src/lib/types/database.ts",
@@ -50,6 +51,7 @@
 		"vitest": "^4.1.8"
 	},
 	"dependencies": {
+		"@anthropic-ai/sdk": "^1.6.0",
 		"@fontsource-variable/dm-sans": "^5.3.0",
 		"@fontsource-variable/manrope": "^5.3.0",
 		"@lucide/svelte": "^1.70.0",

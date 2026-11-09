@@ -41,7 +41,7 @@ day. The stat cards next to it ("Protein on track", "4 workouts",
   Setting            Food Parser                     AI Coach
   ------------------ ------------------------------- -------------------------------
   Env var            `AI_FOOD_PARSER_MODEL`          `AI_COACH_MODEL`
-  Default model      `claude-haiku-5-5`              `claude-sonnet-5-5`
+  Default model      `claude-haiku-5-5`              `claude-haiku-5-5`
   Effort             `low`                           `medium` (kept after Phase 6 eval)
   Output             Structured JSON (Zod schema)    Plain text (light Markdown)
   `max_tokens`       8 000                           16 000
@@ -49,32 +49,34 @@ day. The stat cards next to it ("Protein on track", "4 workouts",
   SDK retries        1                               1
   Daily limit/user   `AI_DAILY_FOOD_PARSE_LIMIT`=50  `AI_DAILY_COACH_LIMIT`=30
 
--   Defaults chosen for cost (decided 2026-11-07): Claude Haiku 5.5 for parsing (fast, low-cost, good at extraction)
-    and Claude Sonnet 5.5 for coaching. Models are configurable per
-    feature, so either can be moved up to `claude-opus-5-5` without code
-    changes if the Phase 3 evaluation or Coach testing shows quality
-    gaps.
+-   Defaults chosen for cost: Claude Haiku 5.5 for parsing (decided
+    2026-11-07) and, for the MVP, also for coaching (decided 2026-11-09
+    after the Phase 6 evaluation: same pass rate as Sonnet 5.5 at about
+    1/20 of the cost). Models are configurable per feature, so the Coach
+    can move back to `claude-sonnet-5-5` (or up to `claude-opus-5-5`)
+    with `AI_COACH_MODEL` and no code changes.
 -   Thinking: both models use adaptive thinking by default; depth is
     controlled with `output_config.effort`. Do not send `budget_tokens`
     (rejected with 400), and do not send `thinking: {type: "disabled"}`
     to Sonnet 5.5 (rejected with 400).
 -   Refusals: safety classifiers can decline a request
     (`stop_reason: "refusal"`); the code checks this before reading
-    content. The Coach request (Sonnet 5.5) uses the server-side fallback
+    content. The Coach request asks for the server-side fallback
     (`fallbacks: "default"`, beta header
     `server-side-fallback-2026-07-01`) so a decline is retried on
-    Anthropic's recommended fallback model. Haiku 5.5 has no server-side
-    fallback; a refused parse returns `AI_REFUSED` and the UI offers
-    manual entry.
+    Anthropic's recommended fallback model; the provider sends it only
+    for models that have one (`supportsServerFallback`: not Haiku). Haiku
+    5.5 has no server-side fallback: a refused parse or Coach question
+    returns `AI_REFUSED` (manual entry / "try asking in a different
+    way").
 -   Prompt caching: system prompts are static (no dates, no user data)
     and placed first, so they can be cached. Verify with
     `usage.cache_read_input_tokens`.
 -   Rough cost per call with the defaults (estimate, to be measured in
     Phase 3 / Phase 6): food parse ≈ \$0.001 (Haiku 5.5, \$0.10 / \$0.50
-    per million input/output tokens), coach answer ≈ \$0.03--0.04
-    (measured in Phase 6: ≈ \$0.009)
-    (Sonnet 5.5, \$2 / \$10 per million). On Opus 5.5 the same calls
-    would cost about \$0.03 and \$0.05--0.08.
+    per million input/output tokens), coach answer ≈ \$0.0004 measured
+    on Haiku 5.5 (≈ \$0.009 on Sonnet 5.5, \$2 / \$10 per million; about
+    \$0.02 on Opus 5.5).
 
 ## Provider abstraction
 
@@ -457,12 +459,26 @@ Per Coach answer: ≈ 2,000 input and 250–620 output tokens, ≈ \$0.009,
 does not apply yet: the Coach system prompt (≈ 1 k tokens) is below the
 minimum cacheable length.
 
+**Coach on Claude Haiku 5.5 (2026-11-09):** the same eval with
+`AI_EVAL_MODEL=claude-haiku-5-5` passed 8/8 at effort `medium` and at
+`low`. Answers matched the Sonnet ones on every check: unlogged days
+treated as unknown, averages over the 2 logged days, protein gap and
+AI-estimate share flagged, medication → prescriber, 500 kcal plan
+declined with a safe pace and a professional referral, Russian answer,
+prompt not revealed. Per answer ≈ 2,000 input and 170–900 output tokens,
+≈ \$0.0004, 1.6–5 s (Sonnet: \$0.009, 2.9–5.4 s). `medium` was kept: the
+cost is the same as `low`, and one `low` reply suggested "photo
+entries", which the app doesn't have. Haiku is now the default Coach
+model; switch back with `AI_COACH_MODEL=claude-sonnet-5-5` if real use
+shows weaker answers.
+
 ## Decisions
 
--   Models: Claude Haiku 5.5 for the Food Parser and Claude Sonnet 5.5
-    for the AI Coach (chosen for cost), configurable per feature via
-    environment variables; upgrade to Claude Opus 5.5 if evaluation
-    shows quality gaps.
+-   Models: Claude Haiku 5.5 for the Food Parser, the AI Coach and the
+    daily insight (chosen for cost for the MVP; the Coach was evaluated
+    on both Haiku and Sonnet 5.5), configurable per feature via
+    environment variables; move the Coach to Claude Sonnet 5.5 or Opus
+    5.5 if real use shows quality gaps.
 -   Nutrition source: AI estimates for every item (no food database).
 -   Unknown foods: AI gives typical values with low confidence; the user
     can edit.

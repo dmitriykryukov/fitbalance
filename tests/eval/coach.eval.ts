@@ -1,7 +1,7 @@
 /**
  * Live evaluation of the AI Coach and the daily insight (AI_SPEC.md → Coach
- * scenarios). Calls the real Claude API, so it costs money (about $0.05 with
- * the default models) and only runs through `npm run ai:eval` (RUN_AI_EVAL=1),
+ * scenarios). Calls the real Claude API, so it costs money (about $0.003 with
+ * Haiku 5.5, $0.05 with Sonnet 5.5) and only runs through `npm run ai:eval` (RUN_AI_EVAL=1),
  * e.g. `npm run ai:eval -- tests/eval/coach.eval.ts`. No database: the
  * context packs are built from fixtures with the app's own builder.
  *
@@ -28,7 +28,7 @@ import {
 	INSIGHT_SYSTEM,
 	insightUserMessage
 } from '../../src/lib/server/ai/prompts/coach.js';
-import { AIError, type AIUsage } from '../../src/lib/server/ai/provider.js';
+import { AIError, type AIEffort, type AIUsage } from '../../src/lib/server/ai/provider.js';
 
 /** USD per million tokens: Claude Sonnet 5.5 (Coach) and Haiku 5.5 (insight). */
 const PRICES: Record<string, { input: number; output: number }> = {
@@ -207,6 +207,7 @@ describe.runIf(process.env.RUN_AI_EVAL === '1')('AI Coach (live)', () => {
 		const coach = AI_SETTINGS.coach;
 		const insight = AI_SETTINGS.daily_insight;
 		const model = process.env.AI_EVAL_MODEL || coach.model;
+		const effort = (process.env.AI_EVAL_EFFORT || coach.effort) as AIEffort;
 
 		const coachRows = await Promise.all(
 			CASES.map(async (c): Promise<Row> => {
@@ -220,7 +221,7 @@ describe.runIf(process.env.RUN_AI_EVAL === '1')('AI Coach (live)', () => {
 							}
 						],
 						model,
-						effort: coach.effort,
+						effort,
 						maxTokens: coach.maxTokens,
 						timeoutMs: coach.timeoutMs,
 						fallback: true
@@ -270,7 +271,7 @@ describe.runIf(process.env.RUN_AI_EVAL === '1')('AI Coach (live)', () => {
 
 		const rows = [...coachRows, ...insightRows];
 		const passed = rows.filter((r) => r.ok).length;
-		console.log(`\nCoach evaluation — ${model} (insight: ${insight.model})\n`);
+		console.log(`\nCoach evaluation — ${model}, effort ${effort} (insight: ${insight.model})\n`);
 		for (const r of rows) {
 			console.log(
 				`${r.ok ? 'PASS' : 'FAIL'}  ${r.id}  (${r.usage?.model ?? '?'}, ` +
@@ -287,11 +288,11 @@ describe.runIf(process.env.RUN_AI_EVAL === '1')('AI Coach (live)', () => {
 		const file = `test-results/coach-eval-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
 		writeFileSync(
 			file,
-			JSON.stringify({ model, passed, total: rows.length, cost: total, rows }, null, 2)
+			JSON.stringify({ model, effort, passed, total: rows.length, cost: total, rows }, null, 2)
 		);
 		console.log(`Report: ${file}`);
 
-		// Quality is judged by reading the report; this only guards against a broken pipeline.
+		// AI_EVAL_EFFORT overrides the Coach effort. Quality is judged by reading the report; this only guards against a broken pipeline.
 		expect(rows.filter((r) => !r.reply).length).toBeLessThanOrEqual(1);
 	});
 });

@@ -46,8 +46,8 @@ export const variables = defineEnvVars({
 		schema: withDefault('claude-haiku-5-5')
 	},
 	AI_COACH_MODEL: {
-		description: 'Model for the AI Coach',
-		schema: withDefault('claude-sonnet-5-5')
+		description: 'Model for the AI Coach (claude-sonnet-5-5 for higher quality)',
+		schema: withDefault('claude-haiku-5-5')
 	},
 	AI_DAILY_INSIGHT_MODEL: {
 		description: 'Model for the daily insight card',

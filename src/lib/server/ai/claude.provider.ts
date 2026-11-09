@@ -22,6 +22,14 @@ type Call = {
 /** Beta header for the `fallbacks: "default"` form (the array form uses another one). */
 const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 
+/**
+ * Whether the model has a server-side refusal fallback. Haiku models have
+ * none (AI_SPEC.md), so for them a decline is returned as a refusal.
+ */
+export function supportsServerFallback(model: string): boolean {
+	return !/haiku/i.test(model);
+}
+
 type TokenUsage = Pick<
 	Anthropic.Usage,
 	'input_tokens' | 'output_tokens' | 'cache_read_input_tokens' | 'cache_creation_input_tokens'
@@ -101,7 +109,9 @@ export class ClaudeProvider implements AIProvider {
 			output_config: format ? { effort: call.effort, format } : { effort: call.effort }
 		};
 		const options = { timeout: call.timeoutMs, maxRetries: 1 };
-		if (!call.fallback) return this.client.messages.create(params, options);
+		if (!call.fallback || !supportsServerFallback(call.model)) {
+			return this.client.messages.create(params, options);
+		}
 		// A safety decline is re-run on Anthropic's recommended fallback model in
 		// the same call; `stop_reason: "refusal"` then means the whole chain declined.
 		return this.client.beta.messages.create(

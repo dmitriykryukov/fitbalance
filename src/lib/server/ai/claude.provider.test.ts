@@ -252,6 +252,14 @@ describe('ClaudeProvider.generateText', () => {
 		expect(requests[0].headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
 	});
 
+	it('sends no fallback for Haiku, which has none', async () => {
+		const { provider, requests } = fake(() => json(message('Fine.')));
+		await provider.generateText({ ...textCall, model: 'claude-haiku-5-5', fallback: true });
+		expect(requests[0].body).not.toHaveProperty('fallbacks');
+		expect(requests[0].headers.get('anthropic-beta')).toBeNull();
+		expect(requests[0].url).not.toContain('beta=true');
+	});
+
 	it('maps a refusal of the whole fallback chain', async () => {
 		const { provider } = fake(() => json(message('', 'refusal')));
 		const error = await failure(provider.generateText({ ...textCall, fallback: true }));

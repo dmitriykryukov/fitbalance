@@ -45,9 +45,13 @@ type Reply = (signal?: AbortSignal | null) => Response | Promise<Response>;
 
 /** A provider whose HTTP layer returns canned responses (no network, no cost). */
 function fake(reply: Reply) {
-	const requests: { body: Record<string, unknown> }[] = [];
-	const fetch = async (_url: string | URL | Request, init?: RequestInit) => {
-		requests.push({ body: JSON.parse(String(init?.body)) });
+	const requests: { url: string; headers: Headers; body: Record<string, unknown> }[] = [];
+	const fetch = async (url: string | URL | Request, init?: RequestInit) => {
+		requests.push({
+			url: String(url),
+			headers: new Headers(init?.headers),
+			body: JSON.parse(String(init?.body))
+		});
 		if (init?.signal?.aborted) throw new DOMException('aborted', 'AbortError');
 		return reply(init?.signal);
 	};
@@ -203,5 +207,59 @@ describe('ClaudeProvider.generateStructured', () => {
 
 	it('refuses to start without an API key', () => {
 		expect(() => ClaudeProvider.fromApiKey(undefined)).toThrow(AIError);
+	});
+});
+
+describe('ClaudeProvider.generateText', () => {
+	const textCall = {
+		system: 'Static system prompt',
+		messages: [{ role: 'user' as const, content: 'How was my week?' }],
+		model: 'claude-sonnet-5-5',
+		effort: 'medium' as const,
+		maxTokens: 16_000,
+		timeoutMs: 2000
+	};
+
+	it('returns the text without a format and without fallbacks by default', async () => {
+		const { provider, requests } = fake(() => json(message('You logged 3 of 7 days.')));
+		const { text } = await provider.generateText(textCall);
+		expect(text).toBe('You logged 3 of 7 days.');
+		expect(requests[0].body).not.toHaveProperty('fallbacks');
+		expect(requests[0].body.output_config).toEqual({ effort: 'medium' });
+		expect(requests[0].headers.get('anthropic-beta')).toBeNull();
+	});
+
+	it('opts into the server-side fallback and reports the model that answered', async () => {
+		const { provider, requests } = fake(() =>
+			json({
+				...message('Served by the fallback.'),
+				model: 'claude-opus-4-8',
+				content: [
+					{
+						type: 'fallback',
+						from: { model: 'claude-sonnet-5-5' },
+						to: { model: 'claude-opus-4-8' }
+					},
+					{ type: 'text', text: 'Served by the fallback.' }
+				]
+			})
+		);
+		const { text, usage } = await provider.generateText({ ...textCall, fallback: true });
+		expect(text).toBe('Served by the fallback.');
+		expect(usage.model).toBe('claude-opus-4-8');
+		expect(requests[0].body.fallbacks).toBe('default');
+		expect(requests[0].body).not.toHaveProperty('betas');
+		expect(requests[0].headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
+	});
+
+	it('maps a refusal of the whole fallback chain', async () => {
+		const { provider } = fake(() => json(message('', 'refusal')));
+		const error = await failure(provider.generateText({ ...textCall, fallback: true }));
+		expect(error.kind).toBe('refused');
+	});
+
+	it('treats an empty reply as invalid', async () => {
+		const { provider } = fake(() => json(message('   ')));
+		expect((await failure(provider.generateText(textCall))).kind).toBe('invalid');
 	});
 });

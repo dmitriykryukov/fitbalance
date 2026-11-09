@@ -50,3 +50,11 @@ export const countWorkouts = (n: number) =>
 		many: m.count_workouts_many,
 		other: m.count_workouts_other
 	});
+
+export const countLoggedDays = (n: number) =>
+	plural(n, {
+		one: m.coach_days_logged_one,
+		few: m.coach_days_logged_few,
+		many: m.coach_days_logged_many,
+		other: m.coach_days_logged_other
+	});

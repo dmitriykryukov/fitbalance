@@ -16,9 +16,18 @@ type Call = {
 	effort: AIEffort;
 	maxTokens: number;
 	timeoutMs: number;
+	fallback?: boolean;
 };
 
-function usageOf(model: string, started: number, usage?: Anthropic.Usage): AIUsage {
+/** Beta header for the `fallbacks: "default"` form (the array form uses another one). */
+const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
+
+type TokenUsage = Pick<
+	Anthropic.Usage,
+	'input_tokens' | 'output_tokens' | 'cache_read_input_tokens' | 'cache_creation_input_tokens'
+>;
+
+function usageOf(model: string, started: number, usage?: TokenUsage): AIUsage {
 	return {
 		provider: 'anthropic',
 		model,
@@ -81,25 +90,37 @@ export class ClaudeProvider implements AIProvider {
 		return new ClaudeProvider(new Anthropic({ apiKey, maxRetries: 1 }));
 	}
 
+	private request(call: Call, format?: ReturnType<typeof zodOutputFormat>) {
+		const params = {
+			model: call.model,
+			max_tokens: call.maxTokens,
+			system: [
+				{ type: 'text' as const, text: call.system, cache_control: { type: 'ephemeral' as const } }
+			],
+			messages: call.messages,
+			output_config: format ? { effort: call.effort, format } : { effort: call.effort }
+		};
+		const options = { timeout: call.timeoutMs, maxRetries: 1 };
+		if (!call.fallback) return this.client.messages.create(params, options);
+		// A safety decline is re-run on Anthropic's recommended fallback model in
+		// the same call; `stop_reason: "refusal"` then means the whole chain declined.
+		return this.client.beta.messages.create(
+			{ ...params, betas: [FALLBACK_BETA], fallbacks: 'default' },
+			options
+		);
+	}
+
 	private async send(call: Call, format?: ReturnType<typeof zodOutputFormat>) {
 		const started = performance.now();
-		let response: Anthropic.Message;
+		let response: Awaited<ReturnType<ClaudeProvider['request']>>;
 		try {
-			response = await this.client.messages.create(
-				{
-					model: call.model,
-					max_tokens: call.maxTokens,
-					system: [{ type: 'text', text: call.system, cache_control: { type: 'ephemeral' } }],
-					messages: call.messages,
-					output_config: format ? { effort: call.effort, format } : { effort: call.effort }
-				},
-				{ timeout: call.timeoutMs, maxRetries: 1 }
-			);
+			response = await this.request(call, format);
 		} catch (error) {
 			throw mapError(error, usageOf(call.model, started));
 		}
 
-		const usage = usageOf(call.model, started, response.usage);
+		// `response.model` names the model that answered (the fallback, if one ran).
+		const usage = usageOf(response.model || call.model, started, response.usage);
 		// Check why the model stopped before reading any content.
 		if (response.stop_reason === 'refusal') {
 			throw new AIError('refused', 'The model declined the request', usage);
@@ -107,9 +128,9 @@ export class ClaudeProvider implements AIProvider {
 		if (response.stop_reason === 'max_tokens') {
 			throw new AIError('invalid', 'Output was cut off by max_tokens', usage);
 		}
-		const text = response.content
+		const text = (response.content as { type: string; text?: string }[])
 			.filter((block) => block.type === 'text')
-			.map((block) => block.text)
+			.map((block) => block.text ?? '')
 			.join('');
 		return { text, usage };
 	}

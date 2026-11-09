@@ -227,6 +227,27 @@ Implementation notes (Phase 4):
 -   Notes on incomplete data in answers are shown as written by the
     Coach.
 
+Implementation notes (Phase 6):
+
+-   `/app/coach` opens the most recent conversation; `?c=<id>` opens a
+    given one (an unknown id redirects to `?new`); `?new` starts an empty
+    one. The header has two icon buttons: history and new conversation.
+-   Stat strip: kcal and protein today (with the goal), training minutes
+    in the last 7 days (cardio + strength). Unknown values show "—".
+-   Highlight cards (last 7 days, `src/lib/coach.ts`): protein average
+    over logged days vs target ("on track" from 90 % of it), sessions and
+    active time, weight change over 30 days (only with two measurements).
+-   The daily insight is streamed from the page load: the page renders at
+    once and the card appears when ready; it is omitted when there is
+    none. It is shown on Today (after the meals) and in Coach as
+    "Practical recommendation".
+-   Replies are light Markdown rendered by `Markdown.svelte` from parsed
+    data (`src/lib/markdown.ts`), never as HTML. Enter sends, Shift+Enter
+    adds a line. A failed send removes the pending bubble, puts the text
+    back in the field and shows the error with "Try again".
+-   History (`/app/coach/history`): conversations by last activity, delete
+    with confirmation.
+
 ### Statistics (`/app/statistics`)
 
 Range tabs 7 / 30 / 90 days.
@@ -305,7 +326,7 @@ src/
       dashboard/   EnergyHero, MacroCard, ActivityTiles, MealsPreview, InsightCard
       nutrition/   MealSection, MealItemRow, AIMealInput, AIReviewItem, FoodSearch, FoodForm
       activity/    TypeTabs, StrengthForm, ExerciseCard, SetRow, CardioForm, WeekSummary, HistoryList
-      coach/       ChatThread, MessageBubble, SuggestedQuestions, InsightCards
+      coach/       CoachOverview, MessageBubble, Markdown, SuggestedQuestions, TypingIndicator
       statistics/  RangeTabs, NutritionTrend, TrainingSummary, BodyTrend
       profile/     MeasurementTiles, GoalSelector, TargetsCard, PreferenceChips
     api/           typed fetch client for /api routes (client side)

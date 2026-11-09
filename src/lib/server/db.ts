@@ -36,7 +36,7 @@ export function unwrap<T>(result: { data: T; error: DbError | null }): T {
 }
 
 /** Like `unwrap`, but a missing row becomes NOT_FOUND (RLS hides other users' rows). */
-export function unwrapFound<T>(result: { data: T | null; error: DbError | null }): NonNullable<T> {
+export function unwrapFound<T>(result: { data: T; error: DbError | null }): NonNullable<T> {
 	const data = unwrap(result);
 	if (data == null) throw new ApiError('NOT_FOUND', m.error_not_found());
 	return data;

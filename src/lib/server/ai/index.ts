@@ -1,6 +1,8 @@
 import {
+	AI_COACH_MODEL,
 	AI_DAILY_COACH_LIMIT,
 	AI_DAILY_FOOD_PARSE_LIMIT,
+	AI_DAILY_INSIGHT_MODEL,
 	AI_FOOD_PARSER_MODEL,
 	ANTHROPIC_API_KEY
 } from '$app/env/private';
@@ -18,7 +20,23 @@ export const AI_SETTINGS = {
 		timeoutMs: 30_000,
 		dailyLimit: AI_DAILY_FOOD_PARSE_LIMIT
 	},
-	coach: { dailyLimit: AI_DAILY_COACH_LIMIT }
+	coach: {
+		model: AI_COACH_MODEL,
+		effort: 'medium',
+		maxTokens: 16_000,
+		timeoutMs: 60_000,
+		dailyLimit: AI_DAILY_COACH_LIMIT,
+		/** Messages of the conversation sent back with each question. */
+		historyMessages: 10
+	},
+	daily_insight: {
+		model: AI_DAILY_INSIGHT_MODEL,
+		effort: 'low',
+		maxTokens: 4000,
+		timeoutMs: 30_000,
+		/** Generation attempts per user per 24 h (one success per day is the norm). */
+		dailyLimit: 3
+	}
 } as const;
 
 let provider: AIProvider | undefined;

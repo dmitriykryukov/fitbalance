@@ -22,6 +22,12 @@ type CallOptions = {
 	effort: AIEffort;
 	maxTokens: number;
 	timeoutMs: number;
+	/**
+	 * Retry a safety decline on the provider's recommended fallback model,
+	 * server-side (Claude: `fallbacks: "default"`). `usage.model` then names
+	 * the model that actually answered.
+	 */
+	fallback?: boolean;
 };
 
 export interface AIProvider {

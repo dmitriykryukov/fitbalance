@@ -37,7 +37,8 @@ export async function assertWithinDailyLimit(
 
 	const oldest = rows[0] ? new Date(rows[0].created_at).getTime() : now.getTime();
 	const retryAfter = Math.max(1, Math.ceil((oldest + DAY_MS - now.getTime()) / 1000));
-	throw new ApiError('RATE_LIMITED', m.ai_error_daily_limit(), undefined, retryAfter);
+	const message = feature === 'coach' ? m.coach_error_limit() : m.ai_error_daily_limit();
+	throw new ApiError('RATE_LIMITED', message, undefined, retryAfter);
 }
 
 /**

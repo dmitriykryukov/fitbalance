@@ -249,9 +249,29 @@ Errors: `RATE_LIMITED` (daily limit or provider 429, with
 `AI_INVALID_RESPONSE`; a missing API key is `INTERNAL_ERROR`.
 
 Coach request: `{ "conversation_id": null, "message": "…" }` (1--2000
-chars). Response: `{ "conversation_id": "…", "message": { "id": "…",
-"role": "assistant", "content": "…", "created_at": "…" } }`. Details of
-both pipelines are in AI_SPEC.md.
+chars after trimming; unknown fields rejected). Response:
+`{ "conversation_id": "…", "message": { "id": "…", "role": "assistant",
+"content": "…", "created_at": "…" } }`. Another user's or an unknown
+`conversation_id` is `NOT_FOUND` (no AI call). If the AI call fails,
+nothing is stored. Errors: `RATE_LIMITED` (daily Coach limit, with
+`retry_after_seconds`, or provider 429), `AI_REFUSED`,
+`AI_PROVIDER_ERROR`, `AI_INVALID_RESPONSE`. Details of both pipelines
+are in AI_SPEC.md.
+
+Conversations: `GET /api/ai/conversations` →
+`{ "conversations": [{ "id", "title", "created_at", "updated_at" }] }`
+(up to 100, newest activity first). `GET /api/ai/conversations/:id` →
+`{ "conversation": { "id", "title", "created_at", "updated_at",
+"messages": [{ "id", "role", "content", "created_at" }] } }` (oldest
+first). `DELETE` → 204.
+
+Daily insight: `GET /api/ai/daily-insight?date=` (default: the user's
+today; future dates are `VALIDATION_ERROR`) →
+`{ "insight": { "local_date", "title", "body", "created_at" } | null,
+"reason": null | "not_enough_data" | "past_date" | "unavailable" }`.
+It never returns an AI error: when there is no insight the card is
+hidden. Only today's insight is generated; other dates are read from the
+cache.
 
 ### Activities and strength workouts
 

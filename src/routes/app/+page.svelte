@@ -4,6 +4,7 @@
 	import type { ResolvedPathname } from '$app/types';
 	import ActivityTiles from '#lib/components/dashboard/ActivityTiles.svelte';
 	import EnergyHero from '#lib/components/dashboard/EnergyHero.svelte';
+	import InsightCard from '#lib/components/dashboard/InsightCard.svelte';
 	import LatestActivityCard from '#lib/components/dashboard/LatestActivityCard.svelte';
 	import MacroCard from '#lib/components/dashboard/MacroCard.svelte';
 	import MealsPreview from '#lib/components/dashboard/MealsPreview.svelte';
@@ -90,6 +91,12 @@
 		</div>
 		<MealsPreview meals={dashboard.meals} timeZone={data.profile.timezone} {diaryHref} {addHref} />
 	</section>
+
+	{#await data.insight then insight}
+		{#if insight}
+			<InsightCard {insight} />
+		{/if}
+	{/await}
 
 	<LatestActivityCard latest={dashboard.activity.latest} today={dashboard.date} />
 </div>

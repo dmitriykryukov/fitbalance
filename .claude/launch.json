@@ -6,6 +6,12 @@
 			"runtimeExecutable": "npm",
 			"runtimeArgs": ["run", "dev"],
 			"port": 5174
+		},
+		{
+			"name": "dev-no-ai",
+			"runtimeExecutable": "env",
+			"runtimeArgs": ["ANTHROPIC_API_KEY=", "npx", "vite", "dev", "--port", "5175", "--strictPort"],
+			"port": 5175
 		}
 	]
 }

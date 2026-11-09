@@ -13,8 +13,15 @@ export function createSupabaseServerClient(event: RequestEvent) {
 		cookies: {
 			getAll: () => event.cookies.getAll(),
 			setAll: (cookiesToSet, headers) => {
-				for (const { name, value, options } of cookiesToSet) {
-					event.cookies.set(name, value, { ...options, path: '/' });
+				try {
+					for (const { name, value, options } of cookiesToSet) {
+						event.cookies.set(name, value, { ...options, path: '/' });
+					}
+				} catch {
+					// The response was already sent (a background token refresh finished
+					// late). The cookie change is dropped and redone on the next request;
+					// throwing here would be an unhandled rejection that crashes the server.
+					return;
 				}
 				// Supabase asks for no-cache headers whenever auth cookies change, so a
 				// CDN never serves one user's session to someone else.

@@ -240,6 +240,20 @@ Range tabs 7 / 30 / 90 days.
 -   **Body:** weight trend (current, target, change, % to goal), waist
     with change. Points only where measurements exist.
 
+Implementation notes (Phase 5):
+
+-   Opened from the "Progress & statistics" card on Profile (back arrow
+    returns there); `?range=7d|30d|90d`, always ending today.
+-   Charts are hand-written SVG (`components/statistics/`): 2px lines,
+    gridlines, dots for short ranges and isolated days, a dashed orange
+    target line with a text label, hover/tap tooltip, and a hidden table
+    for screen readers. Kcal: unlogged days break the line. Weight and
+    waist: only measured days get points; the line connects them.
+-   Activity bars show active minutes per day; days without logs have no
+    bar.
+-   Today counts as a logged day as soon as a meal exists, so a partly
+    logged today lowers the average.
+
 ### Profile & goals (`/app/profile`)
 
 Initials avatar and name, "Progress & statistics" link, measurement
@@ -249,6 +263,10 @@ Maintain / Build muscle), daily nutrition targets card with edit, activity
 preferences chips, links: My foods, Account & language, Help.
 Suggested targets (from height/weight/age/sex/goal, Mifflin--St Jeor)
 are offered as a starting point and labelled as estimates.
+
+Measurements (`/app/profile/measurements`): add form, history newest
+first; each row has edit (fills the form, "Save changes" / "Cancel")
+and delete with confirmation.
 
 ### Auth and onboarding (not in Figma)
 

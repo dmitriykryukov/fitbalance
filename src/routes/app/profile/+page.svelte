@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { Apple, ChevronRight, Languages, Plus, SquarePen, Target } from '@lucide/svelte';
+	import {
+		Apple,
+		ChartColumn,
+		ChevronRight,
+		Languages,
+		Plus,
+		SquarePen,
+		Target
+	} from '@lucide/svelte';
 	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
@@ -87,6 +95,20 @@
 			</Button>
 		</div>
 	</Card>
+
+	<a
+		href={resolve('/app/statistics')}
+		class="flex items-center gap-4 rounded-card border border-green/15 bg-mint p-4 shadow-card transition-colors hover:border-green/40"
+	>
+		<span class="grid size-12 shrink-0 place-items-center rounded-tile bg-green text-white">
+			<ChartColumn class="size-6" aria-hidden="true" />
+		</span>
+		<span class="min-w-0 flex-1">
+			<span class="block heading text-base font-bold text-ink">{m.stats_link_title()}</span>
+			<span class="mt-0.5 block text-sm text-muted">{m.stats_link_body()}</span>
+		</span>
+		<ChevronRight class="size-5 shrink-0 text-green" aria-hidden="true" />
+	</a>
 
 	<Card>
 		<div class="mb-3 flex items-center justify-between">

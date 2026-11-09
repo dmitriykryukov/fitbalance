@@ -107,9 +107,42 @@ meals (totals are then 0 but must be shown as "not logged", not as
 data). Unlogged meal types are `{ "meal_type": "dinner", "logged": false }`.
 Activity values (`gym_minutes`, `steps`, `active_kcal`) are `null` when
 nothing of that kind is logged that day; `latest` is the most recent
-workout or activity on or before the date. Statistics returns one entry per day with
-`null` for days without logs (never 0), plus averages over logged days
-and `days_logged`.
+workout or activity on or before the date.
+
+Statistics response (abbreviated; every list has one entry per day of
+the range, `null` for days without records --- never 0):
+
+``` json
+{
+  "range": "7d", "from": "2026-11-03", "to": "2026-11-09", "days_total": 7,
+  "nutrition": {
+    "days": [ { "date": "2026-11-03", "kcal": 1850, "protein_g": 120, "carbs_g": 190, "fat_g": 60, "target_kcal": 2000 },
+              { "date": "2026-11-04", "kcal": null, "protein_g": null, "carbs_g": null, "fat_g": null, "target_kcal": 2000 } ],
+    "days_logged": 5, "avg_kcal": 1910, "avg_protein_g": 131.4, "avg_carbs_g": 180.2, "avg_fat_g": 61,
+    "within_target_pct": 60, "days_with_target": 5,
+    "targets": { "calories_kcal": 2000, "protein_g": 150, "carbs_g": 210, "fat_g": 65 }
+  },
+  "activity": { "days": [ { "date": "2026-11-03", "seconds": 2700 } ], "sessions": 4, "strength_workouts": 2,
+                "active_seconds": 9900, "run_distance_meters": 12200, "steps": 15400, "active_kcal": 1180 },
+  "body": {
+    "weight": { "points": [ { "date": "2026-11-03", "value": 82 }, { "date": "2026-11-08", "value": 81.4 } ],
+                "current": 81.4, "current_date": "2026-11-08", "target": 78, "change": -0.6, "progress_pct": 15 },
+    "waist":  { "points": [], "current": 90, "current_date": "2026-10-20", "target": null, "change": null, "progress_pct": null }
+  }
+}
+```
+
+-   Averages use logged days only; `within_target_pct` counts logged
+    days whose kcal is within ±10 % of the target of the goal version
+    active **that day** (days before the first goal have no target).
+    `targets` is the goal active on the last day.
+-   Body `points` are one per measured day (the latest that day);
+    `current` is the latest value on or before `to` (it may predate the
+    range); `change` = last − first point in the range (null with fewer
+    than two); `progress_pct` = progress from the first point toward
+    the target, clamped to 0--100.
+-   `range` defaults to `7d`; `end` must not be more than a day after
+    the user's today.
 
 ### Meals and My foods
 

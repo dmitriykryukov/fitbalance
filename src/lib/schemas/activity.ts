@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ACTIVITY_TYPES, MUSCLE_GROUPS } from '#lib/activity.js';
 import { MIN_LOCAL_DATE } from '#lib/dates.js';
+import { STAT_RANGES } from '#lib/statistics.js';
 
 const isoDate = z.iso.date();
 const localDate = isoDate.refine((d) => d >= MIN_LOCAL_DATE, { message: 'Date is too early' });
@@ -115,4 +116,10 @@ export const RangeQuery = z
 
 export const ExercisesQuery = z.strictObject({
 	query: z.string().trim().max(80).optional()
+});
+
+/** `GET /api/statistics?range=7d|30d|90d&end=` (end defaults to the user's today). */
+export const StatisticsQuery = z.strictObject({
+	range: z.enum(STAT_RANGES).default('7d'),
+	end: localDate.optional()
 });

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Trash2 } from '@lucide/svelte';
+	import { SquarePen, Trash2 } from '@lucide/svelte';
 	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
@@ -12,14 +12,19 @@
 	import TextField from '#lib/components/shared/TextField.svelte';
 	import { addDays } from '#lib/dates.js';
 	import { formatLongDate, formatNumber } from '#lib/format.js';
-	import { apiErrorToForm, parseDecimal, type FieldErrors } from '#lib/forms.js';
+	import { apiErrorToForm, numberToInput, parseDecimal, type FieldErrors } from '#lib/forms.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	// svelte-ignore state_referenced_locally
-	let form = $state({ local_date: data.today, weight_kg: '', waist_cm: '', notes: '' });
+	type Row = (typeof data.measurements)[number];
+	const emptyForm = () => ({ local_date: data.today, weight_kg: '', waist_cm: '', notes: '' });
+
+	let form = $state(emptyForm());
+	/** Id of the measurement being edited; null while adding a new one. */
+	let editingId = $state<string | null>(null);
+	let formCard: HTMLElement | undefined = $state();
 	let errors = $state<FieldErrors>({});
 	let message = $state<string | null>(null);
 	let saving = $state(false);
@@ -45,19 +50,42 @@
 
 		saving = true;
 		try {
-			await api('POST', '/api/measurements', {
+			const body = {
 				local_date: form.local_date,
 				weight_kg: weight,
 				waist_cm: waist,
 				notes: form.notes.trim() || null
-			});
-			form = { local_date: data.today, weight_kg: '', waist_cm: '', notes: '' };
+			};
+			if (editingId) await api('PATCH', `/api/measurements/${editingId}`, body);
+			else await api('POST', '/api/measurements', body);
+			form = emptyForm();
+			editingId = null;
 			await refreshAll();
 		} catch (error) {
 			({ message, fields: errors } = apiErrorToForm(error));
 		} finally {
 			saving = false;
 		}
+	}
+
+	function startEdit(row: Row) {
+		editingId = row.id;
+		form = {
+			local_date: row.local_date,
+			weight_kg: numberToInput(row.weight_kg),
+			waist_cm: numberToInput(row.waist_cm),
+			notes: row.notes ?? ''
+		};
+		errors = {};
+		message = null;
+		formCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+
+	function cancelEdit() {
+		editingId = null;
+		form = emptyForm();
+		errors = {};
+		message = null;
 	}
 
 	function askDelete(id: string) {
@@ -70,6 +98,7 @@
 		deleting = true;
 		try {
 			await api('DELETE', `/api/measurements/${deleteId}`);
+			if (deleteId === editingId) cancelEdit();
 			confirmOpen = false;
 			await refreshAll();
 		} catch (error) {
@@ -88,6 +117,8 @@
 
 <div class="space-y-4 px-4">
 	<form
+		bind:this={formCard}
+		class="scroll-mt-4"
 		novalidate
 		onsubmit={(event) => {
 			event.preventDefault();
@@ -95,7 +126,18 @@
 		}}
 	>
 		<Card>
-			<h2 class="mb-4 eyebrow">{m.measurement_add()}</h2>
+			<div class="mb-4 flex items-center justify-between gap-3">
+				<h2 class="eyebrow">{editingId ? m.measurement_edit() : m.measurement_add()}</h2>
+				{#if editingId}
+					<button
+						type="button"
+						class="text-sm font-semibold text-muted hover:text-ink"
+						onclick={cancelEdit}
+					>
+						{m.cancel()}
+					</button>
+				{/if}
+			</div>
 			<div class="space-y-4">
 				{#if message}<ErrorBanner {message} />{/if}
 				<TextField
@@ -123,7 +165,9 @@
 					/>
 				</div>
 				<TextField label={m.measurement_notes()} bind:value={form.notes} maxlength={500} />
-				<Button type="submit" full loading={saving}>{m.save()}</Button>
+				<Button type="submit" full loading={saving}>
+					{editingId ? m.save_changes() : m.save()}
+				</Button>
 			</div>
 		</Card>
 	</form>
@@ -136,7 +180,9 @@
 			<Card padding="none">
 				<ul class="divide-y divide-line">
 					{#each data.measurements as row (row.id)}
-						<li class="flex items-center gap-3 px-5 py-3">
+						<li
+							class={['flex items-center gap-1 py-3 pr-2 pl-5', row.id === editingId && 'bg-mint']}
+						>
 							<div class="min-w-0 flex-1">
 								<p class="text-sm font-semibold">{formatLongDate(row.local_date)}</p>
 								<p class="text-sm text-muted tabular-nums">
@@ -155,8 +201,16 @@
 							</div>
 							<button
 								type="button"
+								class="grid size-11 place-items-center rounded-full text-muted hover:bg-paper hover:text-ink"
+								aria-label={m.measurement_edit_row({ date: formatLongDate(row.local_date) })}
+								onclick={() => startEdit(row)}
+							>
+								<SquarePen class="size-4" aria-hidden="true" />
+							</button>
+							<button
+								type="button"
 								class="grid size-11 place-items-center rounded-full text-muted hover:bg-paper hover:text-red-700"
-								aria-label={m.delete()}
+								aria-label={m.measurement_delete_row({ date: formatLongDate(row.local_date) })}
 								onclick={() => askDelete(row.id)}
 							>
 								<Trash2 class="size-4" aria-hidden="true" />

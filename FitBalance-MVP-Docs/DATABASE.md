@@ -227,10 +227,11 @@ created_at desc)`, plus unique name indexes on `food_items` and
   Phase   Function                      Status
   ------- ----------------------------- ---------------------------------------------------------------
   2       `save_meal(payload jsonb)`    done --- `20261107150000_save_meal.sql`
-  4       `save_workout(payload jsonb)` planned --- create/replace a workout and its sets; upsert exercises
+  4       `save_workout(payload jsonb)` done --- `20261109120000_save_workout.sql`
 
 Both run as `security invoker`, so RLS and the composite foreign keys
-still apply; `execute` is granted to `authenticated` only (not `anon`).
+still apply; `execute` is granted to `authenticated` and `service_role`
+only (not `anon`).
 
 **`save_meal`** creates the meal (`id` null) or replaces it (`id` given:
 updates the meal row, deletes and re-inserts its items), then for each
@@ -248,6 +249,22 @@ meal to replace does not exist or belongs to someone else, plus any
 constraint violation (e.g. `23503` for another user's `food_item_id`).
 Any error rolls back the meal, its items and the My foods changes.
 Tested through the API in `tests/integration/nutrition.test.ts`.
+
+**`save_workout`** creates the workout (`id` null) or replaces it (`id`
+given: updates the workout row, deletes and re-inserts all its sets).
+Exercises are stored in the order sent; `exercise_order` and
+`set_number` come from the array positions. An exercise without
+`exercise_id` is upserted into the user's `exercises` on the unique
+`lower(btrim(name))` index (an existing muscle group or equipment is
+kept, a missing one is filled in) and the sets link to it; every set
+keeps the `exercise_name` snapshot. The service passes active kcal
+already resolved (`estimated_kcal_burned` + `kcal_source`).
+
+Errors: `22023` for fewer than 1 or more than 30 exercises or 1--50 sets
+per exercise, `P0002` when the workout to replace does not exist or
+belongs to someone else, and `23503` for another user's `exercise_id`.
+Any error rolls back the workout, its sets and the exercise upserts.
+Tested through the API in `tests/integration/activity.test.ts`.
 
 ## Testing
 

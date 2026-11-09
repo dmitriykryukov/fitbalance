@@ -195,6 +195,24 @@ Type tabs: Strength, Run, Walk, Cycling, Other.
 -   Active kcal is pre-filled with the MET estimate when the user has a
     weight recorded (labelled "~ estimated"), and can be overwritten.
 
+Implementation notes (Phase 4):
+
+-   Week = the last 7 days including today, Month = the last 30
+    (`?range=month`). "Cardio" groups running, cycling and other;
+    average pace uses runs with a distance (Σ time ÷ Σ km).
+-   Duration fields take minutes ("45") or h:mm:ss / mm:ss ("1:05:00").
+-   The kcal field shows the live estimate until the user types a number;
+    clearing it goes back to the estimate. Without a recorded weight it
+    stays empty with a hint to add one.
+-   Exercise picker: the user's exercises first, then the built-in list;
+    a typed name can be added as a custom exercise. "Add set" copies
+    the previous set. Empty set rows are ignored on save.
+-   The per-set "done" tick is not built: there is no column to store it
+    (deferred).
+-   Cardio entries open at `/app/activity/[id]` (type can be changed
+    between Run, Walk, Cycling and Other); strength workouts at
+    `/app/activity/workouts/[id]`. Both have delete with confirmation.
+
 ### AI Coach (`/app/coach`)
 
 -   Header "FitBalance Coach", settings icon → conversation history and

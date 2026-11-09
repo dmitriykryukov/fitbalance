@@ -42,3 +42,11 @@ export const countSets = (n: number) =>
 		many: m.count_sets_many,
 		other: m.count_sets_other
 	});
+
+export const countWorkouts = (n: number) =>
+	plural(n, {
+		one: m.count_workouts_one,
+		few: m.count_workouts_few,
+		many: m.count_workouts_many,
+		other: m.count_workouts_other
+	});

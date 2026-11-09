@@ -684,6 +684,7 @@ export type Database = {
     }
     Functions: {
       save_meal: { Args: { payload: Json }; Returns: string }
+      save_workout: { Args: { payload: Json }; Returns: string }
     }
     Enums: {
       [_ in never]: never

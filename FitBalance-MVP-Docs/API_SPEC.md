@@ -264,8 +264,8 @@ Strength workout request:
   "notes": "",
   "exercises": [
     { "name": "Bench press", "exercise_id": null, "muscle_group": "chest", "equipment": "Barbell",
-      "sets": [ { "set_number": 1, "reps": 10, "weight_kg": 50 },
-                { "set_number": 2, "reps": 10, "weight_kg": 50 } ] }
+      "sets": [ { "reps": 10, "weight_kg": 50 },
+                { "reps": 10, "weight_kg": 50 } ] }
   ]
 }
 ```
@@ -276,8 +276,23 @@ Strength workout request:
     it empty when no weight is recorded.
 -   Pace and average speed are returned in responses (speed is a
     generated column; pace is calculated by the service).
+-   `PATCH /api/activities/:id`: omitting `active_kcal` keeps a value the
+    user entered and re-estimates an estimated one from the new type,
+    duration and distance; `null` asks for a fresh estimate.
+-   Activity limits: `duration_seconds` 1--86 400, `distance_meters`
+    0--1 000 000, `steps` 0--200 000, `active_kcal` 0--20 000; `title` is
+    required for `other`. Dates more than one day after the user's
+    today are rejected.
 -   Workouts are saved with the `save_workout(payload jsonb)` database
     function; new exercise names are added to the user's exercise list.
+    1--30 exercises, 1--50 sets each; a set needs `reps`,
+    `duration_seconds` or `distance_meters`. Order comes from the
+    arrays (no `set_number` in requests). `duration_seconds` is optional.
+-   Workout responses group sets by exercise and add `set_count` and
+    `volume_kg` (Σ reps × kg); lists add `exercise_count`.
+-   `GET /api/exercises` returns `{ id, name, muscle_group, equipment }`:
+    the user's own exercises first (`id` set), then built-in EN/RU
+    suggestions they do not have yet (`id: null`), at most 30.
 
 ### Body measurements
 

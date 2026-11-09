@@ -38,16 +38,23 @@
 	<p class="eyebrow">{m.activity_eyebrow()}</p>
 	{#if latest}
 		<h2 class="mt-1 heading text-[19px] font-bold">
-			{latest.kind === 'workout'
-				? latest.title
-				: (latest.title ?? activityTypeLabel(latest.activity_type))}
+			<a
+				href={latest.kind === 'workout'
+					? resolve('/app/activity/workouts/[id]', { id: latest.id })
+					: resolve('/app/activity/[id]', { id: latest.id })}
+				class="hover:text-green"
+			>
+				{latest.kind === 'workout'
+					? latest.title
+					: (latest.title ?? activityTypeLabel(latest.activity_type))}
+			</a>
 		</h2>
 		<p class="mt-1 text-sm text-muted">{details}</p>
 	{:else}
 		<h2 class="mt-1 heading text-[19px] font-bold">{m.no_activity_yet()}</h2>
 		<p class="mt-1 text-sm text-muted">{m.no_activity_body()}</p>
 	{/if}
-	<Button variant="soft" full class="mt-4" href={resolve('/app/activity')}>
+	<Button variant="soft" full class="mt-4" href={resolve('/app/activity/add')}>
 		<Plus class="size-4" aria-hidden="true" />
 		{m.add_activity()}
 	</Button>

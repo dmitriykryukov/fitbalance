@@ -183,4 +183,5 @@ theme, imperial units, Apple Health / wearables, GPS tracking, barcode
 scanning, food photo recognition, external food databases, meal
 planning, advanced training plans, social features, gamification, paid
 plans, Capacitor native packaging, streaming Coach responses, Ollama
-provider.
+provider, per-set "done" tick in strength workouts, managing (renaming,
+deleting) the saved exercise list.
